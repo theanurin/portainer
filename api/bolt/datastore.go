@@ -115,7 +115,7 @@ func (store *Store) MigrateData() error {
 		return err
 	}
 
-	if version < portainer.DBVersion {
+	if version <= portainer.DBVersion {
 		migratorParams := &migrator.Parameters{
 			DB:                     store.db,
 			DatabaseVersion:        version,
@@ -127,6 +127,7 @@ func (store *Store) MigrateData() error {
 			RoleService:            store.RoleService,
 			SettingsService:        store.SettingsService,
 			StackService:           store.StackService,
+			TeamService:            store.TeamService,
 			TeamMembershipService:  store.TeamMembershipService,
 			TemplateService:        store.TemplateService,
 			UserService:            store.UserService,

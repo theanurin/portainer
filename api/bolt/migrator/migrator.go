@@ -1,6 +1,8 @@
 package migrator
 
 import (
+	"log"
+
 	"github.com/boltdb/bolt"
 	"github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/bolt/endpoint"
@@ -11,6 +13,7 @@ import (
 	"github.com/portainer/portainer/api/bolt/role"
 	"github.com/portainer/portainer/api/bolt/settings"
 	"github.com/portainer/portainer/api/bolt/stack"
+	"github.com/portainer/portainer/api/bolt/team"
 	"github.com/portainer/portainer/api/bolt/teammembership"
 	"github.com/portainer/portainer/api/bolt/template"
 	"github.com/portainer/portainer/api/bolt/user"
@@ -30,6 +33,7 @@ type (
 		roleService            *role.Service
 		settingsService        *settings.Service
 		stackService           *stack.Service
+		teamService            *team.Service
 		teamMembershipService  *teammembership.Service
 		templateService        *template.Service
 		userService            *user.Service
@@ -49,6 +53,7 @@ type (
 		RoleService            *role.Service
 		SettingsService        *settings.Service
 		StackService           *stack.Service
+		TeamService            *team.Service
 		TeamMembershipService  *teammembership.Service
 		TemplateService        *template.Service
 		UserService            *user.Service
@@ -69,6 +74,7 @@ func NewMigrator(parameters *Parameters) *Migrator {
 		resourceControlService: parameters.ResourceControlService,
 		roleService:            parameters.RoleService,
 		settingsService:        parameters.SettingsService,
+		teamService:            parameters.TeamService,
 		teamMembershipService:  parameters.TeamMembershipService,
 		templateService:        parameters.TemplateService,
 		stackService:           parameters.StackService,
@@ -268,6 +274,15 @@ func (m *Migrator) Migrate() error {
 	// Portainer 1.22.x
 	if m.currentDBVersion < 20 {
 		err := m.updateUsersToDBVersion20()
+		if err != nil {
+			return err
+		}
+	}
+
+	// Temporary fix to clea
+	if m.currentDBVersion == 20 {
+		log.Println("Access policies clean-up")
+		err := m.cleanupAccessPolicies()
 		if err != nil {
 			return err
 		}
